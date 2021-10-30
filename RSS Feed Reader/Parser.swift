@@ -9,11 +9,13 @@ import Foundation
 
 struct fic  {
     var title: String
+    var id: String
 }
 
 class feedParser: NSObject, XMLParserDelegate {
     var currentElement: String = ""
     var currentTitle: String = ""
+    var currentId: String = ""
     var currentFeed: URL! = URL(string: "")
     var fics: [fic] = []
     
@@ -48,7 +50,7 @@ class feedParser: NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         inSection = false
         if elementName == "entry" {
-            let addedFic = fic(title: currentTitle)
+            let addedFic = fic(title: currentTitle, id: currentId)
             fics.append(addedFic)
         }
     }
@@ -62,6 +64,8 @@ class feedParser: NSObject, XMLParserDelegate {
             {
             case "title":
                 currentTitle = data
+            case "id":
+                currentId = data
             default:
                 break
             }
