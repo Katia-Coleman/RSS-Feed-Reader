@@ -7,9 +7,26 @@
 
 import Foundation
 
-struct fic  {
+struct fic: Codable  {
     var title: String
     var id: String
+    var starFilled: Bool
+    
+    func encode(_ currentFic: fic) -> Data {
+        var cf = currentFic
+        return Data(bytes: &cf, count: MemoryLayout<fic>.stride)
+    }
+    
+    func decode(_ dataFic: Data) -> fic {
+        guard dataFic.count == MemoryLayout<fic>.stride else {
+            fatalError("error")
+        }
+        var decodedFic: fic?
+        dataFic.withUnsafeBytes({(bytes: UnsafePointer<fic>) in
+            //decodedFic = UnsafePointer<fic>(bytes).pointee
+        })
+        return decodedFic!
+    }
 }
 
 class feedParser: NSObject, XMLParserDelegate {
@@ -50,7 +67,7 @@ class feedParser: NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         inSection = false
         if elementName == "entry" {
-            let addedFic = fic(title: currentTitle, id: currentId)
+            let addedFic = fic(title: currentTitle, id: currentId, starFilled: false)
             fics.append(addedFic)
         }
     }
