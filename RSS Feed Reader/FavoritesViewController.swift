@@ -22,6 +22,8 @@ class FavoritesViewController: UIViewController {
         //set up table view extension
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 600
         
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
@@ -68,5 +70,28 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: "tableCell") as! TableViewCell
         cell.setInfo(favoritedFics[indexPath.row], indexPath)
         return cell
+    }
+}
+
+//allows user to interact with specfic elements in a table view
+extension FavoritesViewController: TableViewCellDelegate {
+    //if the star button is clicked in a cell it makes that fic starred
+    func clickStar(with isStarred: Bool, index indexPath: IndexPath) {
+        if isStarred {
+            print("Star")
+            favoritedFics[indexPath.row].starFilled = true
+        }
+        else {
+            print("unstar")
+            favoritedFics[indexPath.row].starFilled = false
+            favoritedFics.remove(at: indexPath.row)
+        }
+        tableView.reloadData()
+    }
+    
+    //if the title of the fic is clicked it takes the user to that page in archive of our own
+    func goToAo3(index indexPath: IndexPath) {
+        print("link")
+        UIApplication.shared.open(URL(string: favoritedFics[indexPath.row].link)!)
     }
 }

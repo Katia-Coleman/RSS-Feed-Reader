@@ -9,6 +9,7 @@ import UIKit
 
 protocol TableViewCellDelegate: AnyObject {
     func clickStar(with isStarred: Bool, index indexPath: IndexPath)
+    func goToAo3(index indexPath: IndexPath)
 }
 
 class TableViewCell: UITableViewCell {
@@ -19,7 +20,15 @@ class TableViewCell: UITableViewCell {
     var indexPath: IndexPath?
     
     //link to title label in table cell
-    @IBOutlet weak var title: UILabel!
+    @IBOutlet weak var title: UIButton!
+    
+    //when the title of the fic is clicked it takes the user to the fic in archive of our own
+    @IBAction func goToAo3(_ sender: Any) {
+        delegate?.goToAo3(index: indexPath!)
+    }
+    
+    //link to the summary label in table cell
+    @IBOutlet weak var summary: UILabel!
     
     //link to star button in table cell
     @IBOutlet weak var starButton: UIButton!
@@ -39,7 +48,8 @@ class TableViewCell: UITableViewCell {
     
     //sets the information in the cell
     func setInfo(_ fic: fic, _ index: IndexPath) {
-        title.text = fic.title
+        title.setTitle(fic.title, for: UIControl.State.normal)
+        summary.text = fic.summary
         indexPath = index
     }
 }

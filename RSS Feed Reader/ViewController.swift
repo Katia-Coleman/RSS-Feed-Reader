@@ -31,6 +31,8 @@ class ViewController: UIViewController {
         //set up table view extension
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 600
         
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
@@ -87,7 +89,14 @@ class ViewController: UIViewController {
         let newFeed = feedParser()
         newFeed.setFeed(url)
         newFeed.parse()
-        return newFeed.fics
+        var changedFics: [fic] = []
+        for updatedFic in newFeed.fics {
+            let newSummary = summaryParser()
+            newSummary.setData(updatedFic.summary)
+            newSummary.parse()
+            changedFics.append(fic(title: updatedFic.title, id: updatedFic.id, starFilled: updatedFic.starFilled, summary: newSummary.completeSummary, link: updatedFic.link, author: newSummary.currentAuthor))
+        }
+        return changedFics
     }
     
     //checks if the id of the fic being added has already been added
@@ -147,7 +156,6 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             else {
                 cell.starButton.setImage(UIImage(named: "StarEmpty"), for: .normal)
             }
-        
         return cell
     }
 }
@@ -163,5 +171,10 @@ extension ViewController: TableViewCellDelegate {
             allFics[indexPath.row].starFilled = false
         }
         saveFics()
+    }
+    
+    //if the title of the fic is clicked it takes the user to that page in archive of our own
+    func goToAo3(index indexPath: IndexPath) {
+        UIApplication.shared.open(URL(string: allFics[indexPath.row].link)!)
     }
 }
