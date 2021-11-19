@@ -69,6 +69,7 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "tableCell") as! TableViewCell
         cell.setInfo(favoritedFics[indexPath.row], indexPath)
+        cell.delegate = self
         return cell
     }
 }
@@ -78,11 +79,9 @@ extension FavoritesViewController: TableViewCellDelegate {
     //if the star button is clicked in a cell it makes that fic starred
     func clickStar(with isStarred: Bool, index indexPath: IndexPath) {
         if isStarred {
-            print("Star")
             favoritedFics[indexPath.row].starFilled = true
         }
         else {
-            print("unstar")
             favoritedFics[indexPath.row].starFilled = false
             favoritedFics.remove(at: indexPath.row)
         }
@@ -91,7 +90,6 @@ extension FavoritesViewController: TableViewCellDelegate {
     
     //if the title of the fic is clicked it takes the user to that page in archive of our own
     func goToAo3(index indexPath: IndexPath) {
-        print("link")
         UIApplication.shared.open(URL(string: favoritedFics[indexPath.row].link)!)
     }
 }
