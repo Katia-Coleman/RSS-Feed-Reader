@@ -14,6 +14,7 @@ struct fic: Codable  {
     var summary: String
     var link: String
     var author: String
+    var dateUpdated: Date
     
     
     func encode(_ currentFic: fic) -> Data {
@@ -39,6 +40,7 @@ class feedParser: NSObject, XMLParserDelegate {
     var currentId: String = ""
     var currentFeed: URL! = URL(string: "")
     var currentLink: String = ""
+    var currentDateUpdated: Date = Date()
     var attributes: [String: String] = [:]
     var currentSummary: String = ""
     var summaryElement: String = ""
@@ -88,7 +90,7 @@ class feedParser: NSObject, XMLParserDelegate {
             inSection = false
         }
         if elementName == "entry" {
-            let addedFic = fic(title: currentTitle, id: currentId, starFilled: false, summary: currentSummary, link: currentLink, author: "")
+            let addedFic = fic(title: currentTitle, id: currentId, starFilled: false, summary: currentSummary, link: currentLink, author: "", dateUpdated: currentDateUpdated)
             fics.append(addedFic)
             currentSummary = ""
         }
@@ -107,6 +109,10 @@ class feedParser: NSObject, XMLParserDelegate {
                 currentId = data
             case "summary":
                 currentSummary += data
+            case "updated":
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+                currentDateUpdated = formatter.date(from: data)!
             default:
                 break
             }

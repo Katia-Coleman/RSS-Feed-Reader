@@ -27,6 +27,8 @@ class ViewController: UIViewController {
         //add in the saved feeds
         feeds.append(first)
         feeds.append(second)
+        feeds.append("https://archiveofourown.org/tags/3828398/feed.atom")
+        feeds.append("https://archiveofourown.org/tags/582724/feed.atom")
         
         //set up table view extension
         tableView.delegate = self
@@ -62,16 +64,10 @@ class ViewController: UIViewController {
     //the action taken upon pressing the refresh button
     //adds in new fics, if there are no fics already added then gets the entirety of the feed
     @IBAction func refresh(_ sender: Any) {
-            if feedsIndex == 1 {
-                allFics.insert(contentsOf: addFics(feeds[feedsIndex]), at: 0)
-            }
-            else if feedsIndex == 0 {
-                allFics.insert(contentsOf: addFics(feeds[feedsIndex]), at: 0)
-            }
-            else {
-                allFics.insert(contentsOf: addFics("https://archiveofourown.org/tags/3828398/feed.atom"), at: 0)
-            }
-            feedsIndex += 1
+        for feed in feeds {
+            allFics.append(contentsOf: addFics(feed))
+        }
+        allFics.sort(by: {$0.dateUpdated.compare($1.dateUpdated) == .orderedDescending})
             tableView.reloadData()
             saveFics()
     }
@@ -94,7 +90,7 @@ class ViewController: UIViewController {
             let newSummary = summaryParser()
             newSummary.setData(updatedFic.summary)
             newSummary.parse()
-            changedFics.append(fic(title: updatedFic.title, id: updatedFic.id, starFilled: updatedFic.starFilled, summary: newSummary.completeSummary, link: updatedFic.link, author: newSummary.currentAuthor))
+            changedFics.append(fic(title: updatedFic.title, id: updatedFic.id, starFilled: updatedFic.starFilled, summary: newSummary.completeSummary, link: updatedFic.link, author: newSummary.currentAuthor, dateUpdated: updatedFic.dateUpdated))
         }
         return changedFics
     }
