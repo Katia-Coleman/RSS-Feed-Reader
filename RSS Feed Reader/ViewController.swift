@@ -25,21 +25,50 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         //add in the saved feeds
-        feeds.append(first)
-        feeds.append(second)
-        feeds.append("https://archiveofourown.org/tags/3828398/feed.atom")
-        feeds.append("https://archiveofourown.org/tags/582724/feed.atom")
+        //feeds.append(first)
+        //feeds.append(second)
+        //feeds.append("https://archiveofourown.org/tags/3828398/feed.atom")
+        //feeds.append("https://archiveofourown.org/tags/582724/feed.atom")
+        
+        getSavedLists("HomeFics")
+        SwiftyPlistManager.shared.getValue(for: "Following", fromPlistWithName: "SavedFics") {(result, err) in
+            if err == nil{
+                let results = result as! NSArray
+                for item in results {
+                    feeds.append(item as! String)
+                }
+            }
+        }
         
         //set up table view extension
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 600
+        tableView.reloadData()
         
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.willResignActiveNotification, object: nil)
+        
+        NotificationCenter.default.addObserver(
+              self,
+              selector: #selector(backgroundRefreshStatusDidChange),
+              name: UIApplication.backgroundRefreshStatusDidChangeNotification, object: nil)
+    }
+
+    @objc func appMovedToBackground() {
+        print("App moved to background!")
+    }
+    
+    @objc func backgroundRefreshStatusDidChange() {
+        print("New status: \(UIApplication.shared.backgroundRefreshStatus)")
+    }
+
+    func getSavedLists(_ item: String) {
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
         //gets the information from the plist
-        SwiftyPlistManager.shared.getValue(for: "HomeFics", fromPlistWithName: "SavedFics") {(result, err) in
+        SwiftyPlistManager.shared.getValue(for: item, fromPlistWithName: "SavedFics") {(result, err) in
             if err == nil{
                 let results = result as! NSArray
                 for item in results {
@@ -47,7 +76,6 @@ class ViewController: UIViewController {
                 }
             }
         }
-        
         //decodes the fics from the property list and adds them to the array to be added to the screen
         for eFic in encodedFics {
             do {
@@ -57,24 +85,27 @@ class ViewController: UIViewController {
                 print{"error"}
             }
         }
-        
-        tableView.reloadData()
     }
     
     //the action taken upon pressing the refresh button
     //adds in new fics, if there are no fics already added then gets the entirety of the feed
     @IBAction func refresh(_ sender: Any) {
+        refresh()
+        tableView.reloadData()
+    }
+    
+    func refresh() {
         for feed in feeds {
             allFics.append(contentsOf: addFics(feed))
         }
         allFics.sort(by: {$0.dateUpdated.compare($1.dateUpdated) == .orderedDescending})
-            tableView.reloadData()
             saveFics()
     }
     
    //the action taken upon pressing the delete button
     //deletes all of the fics on the page
     @IBAction func deleteAllFics(_ sender: Any) {
+        print("delete")
         allFics.removeAll()
         tableView.reloadData()
         SwiftyPlistManager.shared.addNewOrSave([], forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in}

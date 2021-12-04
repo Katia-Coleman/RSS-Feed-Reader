@@ -12,6 +12,10 @@ protocol TableViewCellDelegate: AnyObject {
     func goToAo3(index indexPath: IndexPath)
 }
 
+protocol FollowingTableViewCellDelegate: AnyObject {
+    func trashFeed(index indexPath: IndexPath)
+}
+
 class TableViewCell: UITableViewCell {
     
     var delegate: TableViewCellDelegate?
@@ -50,6 +54,19 @@ class TableViewCell: UITableViewCell {
     func setInfo(_ fic: fic, _ index: IndexPath) {
         title.setTitle(fic.title, for: UIControl.State.normal)
         summary.text = fic.summary
+        indexPath = index
+    }
+    
+    @IBOutlet weak var tagButton: UIButton!
+    
+    var followingDelegate: FollowingTableViewCellDelegate?
+    
+    @IBAction func trashFeed(_ sender: Any) {
+        followingDelegate?.trashFeed(index: indexPath!)
+    }
+    
+    func setInfoFollowing(_ tag: String, _ index: IndexPath) {
+        tagButton.setTitle(tag, for: UIControl.State.normal)
         indexPath = index
     }
 }
