@@ -47,9 +47,12 @@ class feedParser: NSObject, XMLParserDelegate {
     var summarySection: String = ""
     var fics: [fic] = []
     
+    var channelTitle: String = ""
+    
     //shows if the element is opening or closing
     private var inSection: Bool = false
     private var inSubSection: Bool = false
+    private var inBeginning: Bool = true
     
     override init() {
         
@@ -78,6 +81,8 @@ class feedParser: NSObject, XMLParserDelegate {
         switch currentElement {
         case "link":
             currentLink = attributeDict["href"]!
+        case "entry":
+            inBeginning = false
         default:
             break
         }
@@ -92,6 +97,7 @@ class feedParser: NSObject, XMLParserDelegate {
         if elementName == "entry" {
             let addedFic = fic(title: currentTitle, id: currentId, starFilled: false, summary: currentSummary, link: currentLink, author: "", dateUpdated: currentDateUpdated)
             fics.append(addedFic)
+            //print(currentSummary)
             currentSummary = ""
         }
     }
@@ -117,13 +123,25 @@ class feedParser: NSObject, XMLParserDelegate {
                 break
             }
         }
+        
+        if inBeginning {
+            switch currentElement {
+            case "title":
+                //print("data: \(data)")
+                channelTitle += data
+            default:
+                break
+            }
+        }
     }
     
     //ensures parser exits
     func parserDidEndDocument(_ parser: XMLParser) {
-        
+        if let range = channelTitle.range(of: "AO3 works tagged '") {
+           channelTitle.removeSubrange(range)
+        }
+        channelTitle.remove(at: channelTitle.index(before: channelTitle.endIndex))
     }
-    
 }
 
 class summaryParser: NSObject, XMLParserDelegate {
@@ -133,10 +151,14 @@ class summaryParser: NSObject, XMLParserDelegate {
     var currentSummary: String = ""
     var completeSummary: String = ""
     var currentAuthor: String = ""
+    var currentSection: String = ""
+    
+    var channelTitle: String = ""
     
     //shows if the element is opening or closing
     private var inSection: Bool = false
     private var inSubSection: Bool = false
+    private var inList: Bool = false
     
     override init() {
         
@@ -146,6 +168,11 @@ class summaryParser: NSObject, XMLParserDelegate {
     func setData(_ feed: String) {
         let xmlFeed = "<root>" + feed + "</root>"
         data = xmlFeed.data(using: .utf8)!
+    }
+    
+    //sets the feed to a given string (of a url)
+    func setFeed(_ feed: String) {
+        data = feed.data(using: .utf8)!
     }
     
     //sets up the parser
@@ -166,6 +193,9 @@ class summaryParser: NSObject, XMLParserDelegate {
         if attributeDict["rel"] != nil {
             currentElement = "author"
         }
+        if elementName == "li" {
+            inList = true
+        }
     }
     
     //Checks if the element is ending, then marks it as a closing tag and if it is the end of the entry adds a fic object to the arrat of fics with the information found in the entry.
@@ -176,12 +206,15 @@ class summaryParser: NSObject, XMLParserDelegate {
         if elementName == "a" || elementName == "p" {
             inSubSection = false
         }
+        if elementName == "li" {
+            inList = false
+        }
     }
     
     //if the element is open sets the information in that element to the proper place
     func parser(_ parser: XMLParser, foundCharacters string: String) {
         let data = string.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        
+        //print("\(currentElement): \(data)")
         if inSubSection {
             switch currentElement
             {
@@ -194,9 +227,13 @@ class summaryParser: NSObject, XMLParserDelegate {
                 }
             case "author":
                 currentAuthor = data
+            case "li":
+                currentSection = data
             default:
                 break
             }
+        }
+        if inList {
         }
     }
     
@@ -218,6 +255,7 @@ class summaryParser: NSObject, XMLParserDelegate {
         completeSummary = String(completeSummary.dropLast())
         completeSummary = String(completeSummary.dropLast())
         completeSummary += currentSummary
+        
     }
     
 }

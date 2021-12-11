@@ -13,6 +13,7 @@ class FollowingViewController: UIViewController {
     
     
     var following: [String] = []
+    var feedsList: [String] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,7 +24,7 @@ class FollowingViewController: UIViewController {
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
         //gets the information from the plist
-        SwiftyPlistManager.shared.getValue(for: "Following", fromPlistWithName: "SavedFics") {(result, err) in
+        SwiftyPlistManager.shared.getValue(for: "FeedTitles", fromPlistWithName: "SavedFics") {(result, err) in
             if err == nil{
                 let results = result as! NSArray
                 for item in results {
@@ -42,7 +43,11 @@ class FollowingViewController: UIViewController {
     
     //adds the URL in the text field to the list of followed feeds
     @IBAction func enteredText(_ sender: Any) {
-        following.append(textField.text!)
+        let newFeed = feedParser()
+        newFeed.setFeed(textField.text!)
+        newFeed.parse()
+        feedsList.append(textField.text!)
+        following.append(newFeed.channelTitle)
         textField.text = ""
         tableView.reloadData()
         saveFeeds()
@@ -50,7 +55,9 @@ class FollowingViewController: UIViewController {
     
     //saves the feeds in a property list to be restored upon reopening the app
     func saveFeeds() {
-        SwiftyPlistManager.shared.addNewOrSave(following, forKey: "Following", toPlistWithName: "SavedFics") {(err) in
+        SwiftyPlistManager.shared.addNewOrSave(feedsList, forKey: "Following", toPlistWithName: "SavedFics") {(err) in
+        }
+        SwiftyPlistManager.shared.addNewOrSave(following, forKey: "FeedTitles", toPlistWithName: "SavedFics") {(err) in
         }
     }
     

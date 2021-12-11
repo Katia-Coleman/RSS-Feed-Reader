@@ -30,15 +30,9 @@ class ViewController: UIViewController {
         //feeds.append("https://archiveofourown.org/tags/3828398/feed.atom")
         //feeds.append("https://archiveofourown.org/tags/582724/feed.atom")
         
+        //get the saved information
         getSavedLists("HomeFics")
-        SwiftyPlistManager.shared.getValue(for: "Following", fromPlistWithName: "SavedFics") {(result, err) in
-            if err == nil{
-                let results = result as! NSArray
-                for item in results {
-                    feeds.append(item as! String)
-                }
-            }
-        }
+        getSavedFeeds()
         
         //set up table view extension
         tableView.delegate = self
@@ -63,7 +57,13 @@ class ViewController: UIViewController {
     @objc func backgroundRefreshStatusDidChange() {
         print("New status: \(UIApplication.shared.backgroundRefreshStatus)")
     }
+    
+    //code runs when the main view controller is opened
+    override func viewDidAppear(_ animated: Bool) {
+        getSavedFeeds()
+    }
 
+    //gets the saved fics from the property list
     func getSavedLists(_ item: String) {
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
@@ -87,6 +87,20 @@ class ViewController: UIViewController {
         }
     }
     
+    //retrieves the saved feeds from the property list
+    func getSavedFeeds() {
+        var temp: [String] = []
+        SwiftyPlistManager.shared.getValue(for: "Following", fromPlistWithName: "SavedFics") {(result, err) in
+            if err == nil{
+                let results = result as! NSArray
+                for item in results {
+                    temp.append(item as! String)
+                }
+            }
+        }
+        feeds = temp
+    }
+    
     //the action taken upon pressing the refresh button
     //adds in new fics, if there are no fics already added then gets the entirety of the feed
     @IBAction func refresh(_ sender: Any) {
@@ -105,7 +119,6 @@ class ViewController: UIViewController {
    //the action taken upon pressing the delete button
     //deletes all of the fics on the page
     @IBAction func deleteAllFics(_ sender: Any) {
-        print("delete")
         allFics.removeAll()
         tableView.reloadData()
         SwiftyPlistManager.shared.addNewOrSave([], forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in}
