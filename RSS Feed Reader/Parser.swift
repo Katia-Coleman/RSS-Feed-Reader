@@ -152,6 +152,9 @@ class summaryParser: NSObject, XMLParserDelegate {
     var completeSummary: String = ""
     var currentAuthor: String = ""
     var currentSection: String = ""
+    var itemsInSummary: [String : Array<String>] = [:]
+    var summaryPartName: String = ""
+    var incompleteString: String = ""
     
     var channelTitle: String = ""
     
@@ -208,6 +211,8 @@ class summaryParser: NSObject, XMLParserDelegate {
         }
         if elementName == "li" {
             inList = false
+            //itemsInSummary[summaryPartName] = currentTags
+            //currentTags.removeAll()
         }
     }
     
@@ -228,12 +233,29 @@ class summaryParser: NSObject, XMLParserDelegate {
             case "author":
                 currentAuthor = data
             case "li":
+                print(data)
                 currentSection = data
             default:
                 break
             }
         }
         if inList {
+            /*switch currentElement
+            {
+            case "a":
+                if summaryPartName == "Additional Tags:" {
+                    if data == "," {
+                        currentTags.append(incompleteString)
+                    }
+                    else {
+                        incompleteString += data
+                    }
+                }
+                print(data)
+            default:
+                summaryPartName = data
+                break
+            }*/
         }
     }
     
@@ -245,6 +267,12 @@ class summaryParser: NSObject, XMLParserDelegate {
     
     //does code uopn parser exiting
     func parserDidEndDocument(_ parser: XMLParser) {
+        /*for section in itemsInSummary {
+            //print("\(section): ")
+            for item in itemsInSummary[section] {
+                print(item)
+            }
+        }*/
         completeSummary += currentTags[0]
         currentTags.remove(at: 0)
         completeSummary += "\n"

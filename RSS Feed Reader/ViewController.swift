@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     var second = "file:///Users/katiacoleman/Desktop/Apps%20in%20Progress/RSS%20Feed%20Reader/second.txt"
     var feeds: [String] = []
     var feedsIndex = 0
+    var blacklistedItems: [String] = []
     var allFics: [fic] = []
     var encodedFics: [Data] = []
     var start: Bool = false
@@ -31,8 +32,9 @@ class ViewController: UIViewController {
         //feeds.append("https://archiveofourown.org/tags/582724/feed.atom")
         
         //get the saved information
-        getSavedLists("HomeFics")
-        getSavedFeeds()
+        getSavedFics("HomeFics")
+        feeds = getSavedList("Following")
+        blacklistedItems = getSavedList("BlacklistedItems")
         
         //set up table view extension
         tableView.delegate = self
@@ -60,11 +62,16 @@ class ViewController: UIViewController {
     
     //code runs when the main view controller is opened
     override func viewDidAppear(_ animated: Bool) {
-        getSavedFeeds()
+        feeds = getSavedList("Following")
+        blacklistedItems = getSavedList("BlacklistedItems")
+        removeBlacklistedItems()
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.reloadData()
     }
 
     //gets the saved fics from the property list
-    func getSavedLists(_ item: String) {
+    func getSavedFics(_ item: String) {
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
         //gets the information from the plist
@@ -88,9 +95,9 @@ class ViewController: UIViewController {
     }
     
     //retrieves the saved feeds from the property list
-    func getSavedFeeds() {
+    func getSavedList(_ item: String) -> [String] {
         var temp: [String] = []
-        SwiftyPlistManager.shared.getValue(for: "Following", fromPlistWithName: "SavedFics") {(result, err) in
+        SwiftyPlistManager.shared.getValue(for: item, fromPlistWithName: "SavedFics") {(result, err) in
             if err == nil{
                 let results = result as! NSArray
                 for item in results {
@@ -98,7 +105,7 @@ class ViewController: UIViewController {
                 }
             }
         }
-        feeds = temp
+        return temp
     }
     
     //the action taken upon pressing the refresh button
@@ -112,6 +119,7 @@ class ViewController: UIViewController {
         for feed in feeds {
             allFics.append(contentsOf: addFics(feed))
         }
+        removeBlacklistedItems()
         allFics.sort(by: {$0.dateUpdated.compare($1.dateUpdated) == .orderedDescending})
             saveFics()
     }
@@ -173,6 +181,21 @@ class ViewController: UIViewController {
         }
         SwiftyPlistManager.shared.addNewOrSave(decodedFics, forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in
         }
+    }
+    
+    //removes all the fics with a blacklisted item in the summary section
+    func removeBlacklistedItems() {
+        for item in blacklistedItems {
+            var ficIndex = 0
+            for fic in allFics {
+                if fic.summary.contains(item) {
+                    allFics.remove(at: ficIndex)
+                    ficIndex -= 1
+                }
+                ficIndex += 1
+            }
+        }
+        saveFics()
     }
 
 }

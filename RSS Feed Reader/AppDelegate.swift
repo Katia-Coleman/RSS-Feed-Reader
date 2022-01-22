@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         //refresh upon opening the app
         let view = ViewController()
-        view.getSavedLists("HomeFics")
+        view.getSavedFics("HomeFics")
         view.refresh()
         
         //register the background tasks

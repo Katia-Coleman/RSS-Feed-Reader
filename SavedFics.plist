@@ -10,5 +10,7 @@
 	<array/>
 	<key>FeedTitles</key>
 	<array/>
+	<key>BlacklistedItems</key>
+	<array/>
 </dict>
 </plist>
