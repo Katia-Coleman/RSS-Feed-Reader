@@ -64,6 +64,11 @@ class feedParser: NSObject, XMLParserDelegate {
         currentFeed = url
     }
     
+    //sets the feed to a given url
+    func setFeedWithUrl(_ feed: URL) {
+        currentFeed = feed
+    }
+    
     //sets up the parser
     func parse() {
         if let parser = XMLParser(contentsOf: currentFeed) {
@@ -146,7 +151,6 @@ class feedParser: NSObject, XMLParserDelegate {
 
 class summaryParser: NSObject, XMLParserDelegate {
     var currentElement: String = ""
-    var currentTags: [String] = []
     var data: Data? = nil
     var currentSummary: String = ""
     var completeSummary: String = ""
@@ -155,6 +159,14 @@ class summaryParser: NSObject, XMLParserDelegate {
     var itemsInSummary: [String : Array<String>] = [:]
     var summaryPartName: String = ""
     var incompleteString: String = ""
+    
+    var currentTags: [String] = []
+    var fandoms: [String] = []
+    var rating: String = ""
+    var warnings: [String] = []
+    var categories: [String] = []
+    var characters: [String] = []
+    var relationships: [String] = []
     
     var channelTitle: String = ""
     
@@ -214,6 +226,27 @@ class summaryParser: NSObject, XMLParserDelegate {
             //itemsInSummary[summaryPartName] = currentTags
             //currentTags.removeAll()
         }
+        if elementName == "a" {
+            switch currentSection {
+            case "Fandoms:":
+                fandoms.append(incompleteString)
+            case "Rating:":
+                rating = incompleteString
+            case "Warnings:":
+                warnings.append(incompleteString)
+            case "Categories:":
+                categories.append(incompleteString)
+            case "Characters:":
+                characters.append(incompleteString)
+            case "Relationships:":
+                relationships.append(incompleteString)
+            case "Additional Tags:":
+                currentTags.append(incompleteString)
+            default:
+                break
+            }
+            incompleteString = ""
+        }
     }
     
     //if the element is open sets the information in that element to the proper place
@@ -224,7 +257,8 @@ class summaryParser: NSObject, XMLParserDelegate {
             switch currentElement
             {
             case "a":
-                currentTags.append(data)
+                incompleteString += data
+                //currentTags.append(data)
             case "p":
                 if data != "by" {
                 currentSummary += "\n\n"
@@ -239,23 +273,10 @@ class summaryParser: NSObject, XMLParserDelegate {
                 break
             }
         }
-        if inList {
-            /*switch currentElement
-            {
-            case "a":
-                if summaryPartName == "Additional Tags:" {
-                    if data == "," {
-                        currentTags.append(incompleteString)
-                    }
-                    else {
-                        incompleteString += data
-                    }
-                }
-                print(data)
-            default:
-                summaryPartName = data
-                break
-            }*/
+        else if inList {
+            if data != "," {
+                currentSection = data
+            }
         }
     }
     
@@ -265,23 +286,31 @@ class summaryParser: NSObject, XMLParserDelegate {
         completeSummary = ""
     }
     
-    //does code uopn parser exiting
-    func parserDidEndDocument(_ parser: XMLParser) {
-        /*for section in itemsInSummary {
-            //print("\(section): ")
-            for item in itemsInSummary[section] {
-                print(item)
-            }
-        }*/
-        completeSummary += currentTags[0]
-        currentTags.remove(at: 0)
-        completeSummary += "\n"
-        for tag in currentTags {
+    //lists out each of the tags in the section given
+    func listTags(_ list: [String]) {
+        for tag in list {
             completeSummary += tag
             completeSummary += ", "
         }
         completeSummary = String(completeSummary.dropLast())
         completeSummary = String(completeSummary.dropLast())
+    }
+    
+    //does code uopn parser exiting
+    func parserDidEndDocument(_ parser: XMLParser) {
+        
+        //completeSummary += currentTags[0]
+        //currentTags.remove(at: 0)
+        //completeSummary += "\n"
+        listTags(fandoms)
+        completeSummary += "\n"
+        listTags(warnings)
+        completeSummary += ", "
+        listTags(relationships)
+        completeSummary += ", "
+        listTags(characters)
+        completeSummary += ", "
+        listTags(currentTags)
         completeSummary += currentSummary
         
     }

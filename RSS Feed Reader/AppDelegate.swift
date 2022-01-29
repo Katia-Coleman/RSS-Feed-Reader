@@ -120,3 +120,12 @@ extension AppDelegate {
         self.count += 1
     }
 }
+
+//an extension to deal with the opening of an RSS feed in the app
+extension AppDelegate {
+    //called when an URL is opened in the app
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        print("Open")
+        return true
+    }
+}

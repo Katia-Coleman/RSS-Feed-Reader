@@ -16,7 +16,55 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+        if let urlContext = connectionOptions.urlContexts.first {
+            let url = urlContext.url
+            addFeed(url)
+        }
         guard let _ = (scene as? UIWindowScene) else { return }
+    }
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        if let urlContext = URLContexts.first {
+            let url = urlContext.url
+            addFeed(url)
+        }
+    }
+    
+    //retrieves the saved feeds from the property list
+    func getSavedList(_ item: String) -> [String] {
+        var temp: [String] = []
+        SwiftyPlistManager.shared.getValue(for: item, fromPlistWithName: "SavedFics") {(result, err) in
+            if err == nil{
+                let results = result as! NSArray
+                for item in results {
+                    temp.append(item as! String)
+                }
+            }
+        }
+        return temp
+    }
+    
+    //adds a new RSS feed by clicking on the RSS feed button in ao3
+    func addFeed (_ url: URL) {
+        //initialize plist manager
+        SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
+        var feeds: [String] = []
+        var titles: [String] = []
+        feeds = getSavedList("Following")
+        //add the url to the list of followed urls
+        var feed = url.absoluteString
+        feed.removeFirst(5)
+        feeds.append(feed)
+        SwiftyPlistManager.shared.addNewOrSave(feeds, forKey: "Following", toPlistWithName: "SavedFics") {(err) in
+        }
+        //add the title of the feed to the list of followed tags
+        titles = getSavedList("FeedTitles")
+        let newFeed = feedParser()
+        newFeed.setFeed(feed)
+        newFeed.parse()
+        titles.append(newFeed.channelTitle)
+        SwiftyPlistManager.shared.addNewOrSave(titles, forKey: "FeedTitles", toPlistWithName: "SavedFics") {(err) in
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
