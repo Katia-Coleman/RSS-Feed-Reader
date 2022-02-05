@@ -12,6 +12,7 @@ class FavoritesViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     
     var favoritedFics: [fic] = []
+    var indexOfFic: [Int] = []
     var tableCell: TableViewCell?
     var allFics: [fic] = []
     var encodedFics: [Data] = []
@@ -46,14 +47,33 @@ class FavoritesViewController: UIViewController {
                 print{"error"}
             }
         }
+        
+        var i = 0
         for item in allFics {
             if item.starFilled {
                 favoritedFics.append(item)
+                indexOfFic.append(i)
             }
+            i += 1
         }
+        
         tableView.reloadData()
     }
     
+    //saves the fics in a property list to be restored upon reopening the app
+    func saveFics() {
+        var decodedFics: [Data] = []
+        for fic in allFics {
+            do {
+            decodedFics.append(try PropertyListEncoder.init().encode(fic))
+            }
+            catch {
+                print("error saving")
+            }
+        }
+        SwiftyPlistManager.shared.addNewOrSave(decodedFics, forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in
+        }
+    }
     
 }
 
@@ -80,12 +100,16 @@ extension FavoritesViewController: TableViewCellDelegate {
     func clickStar(with isStarred: Bool, index indexPath: IndexPath) {
         if isStarred {
             favoritedFics[indexPath.row].starFilled = true
+            allFics[indexOfFic[indexPath.row]].starFilled = true
         }
         else {
             favoritedFics[indexPath.row].starFilled = false
+            allFics[indexOfFic[indexPath.row]].starFilled = false
             favoritedFics.remove(at: indexPath.row)
+            //allFics.remove(at: indexOfFic[indexPath.row])
         }
         tableView.reloadData()
+        saveFics()
     }
     
     //if the title of the fic is clicked it takes the user to that page in archive of our own

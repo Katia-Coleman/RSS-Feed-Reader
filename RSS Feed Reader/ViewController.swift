@@ -12,6 +12,7 @@ class ViewController: UIViewController {
     //the stack holding each of the labels of the fic titles
     //@IBOutlet weak var feedStackView: UIStackView!
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var first = "file:///Users/katiacoleman/Desktop/Apps%20in%20Progress/RSS%20Feed%20Reader/first.txt"
     var second = "file:///Users/katiacoleman/Desktop/Apps%20in%20Progress/RSS%20Feed%20Reader/second.txt"
@@ -19,6 +20,9 @@ class ViewController: UIViewController {
     var feedsIndex = 0
     var blacklistedItems: [String] = []
     var allFics: [fic] = []
+    var displayedFics: [fic] = []
+    var indexOfDisplay: [Int] = []
+    var searchedString = ""
     var encodedFics: [Data] = []
     var start: Bool = false
         
@@ -43,6 +47,11 @@ class ViewController: UIViewController {
         tableView.estimatedRowHeight = 600
         tableView.reloadData()
         
+        //set up search bar
+        searchBar.delegate = self
+        displayedFics = allFics
+        
+        
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: UIApplication.willResignActiveNotification, object: nil)
         
@@ -64,6 +73,10 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         feeds = getSavedList("Following")
         blacklistedItems = getSavedList("BlacklistedItems")
+        getSavedFics("HomeFics")
+        displayedFics = allFics
+        searchedString = ""
+        searchBar.text = ""
         removeBlacklistedItems()
         tableView.delegate = self
         tableView.dataSource = self
@@ -72,6 +85,7 @@ class ViewController: UIViewController {
 
     //gets the saved fics from the property list
     func getSavedFics(_ item: String) {
+        allFics = []
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
         //gets the information from the plist
@@ -122,12 +136,14 @@ class ViewController: UIViewController {
         removeBlacklistedItems()
         allFics.sort(by: {$0.dateUpdated.compare($1.dateUpdated) == .orderedDescending})
             saveFics()
+        displayedFics = allFics
     }
     
    //the action taken upon pressing the delete button
     //deletes all of the fics on the page
     @IBAction func deleteAllFics(_ sender: Any) {
         allFics.removeAll()
+        displayedFics = allFics
         tableView.reloadData()
         SwiftyPlistManager.shared.addNewOrSave([], forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in}
     }
@@ -205,15 +221,15 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     
     //specifies the number of rows in the table view
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return allFics.count
+        return displayedFics.count
     }
     
     //sets the information of a cell with the same format as that in the tableCell cell
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "tableCell") as! TableViewCell
-        cell.setInfo(allFics[indexPath.row], indexPath)
+        cell.setInfo(displayedFics[indexPath.row], indexPath)
         cell.delegate = self
-            if allFics[indexPath.row].starFilled {
+            if displayedFics[indexPath.row].starFilled {
                 cell.starButton.setImage(UIImage(named: "StarFilled"), for: .normal)
             }
             else {
@@ -227,11 +243,24 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
 extension ViewController: TableViewCellDelegate {
     //if the star button is clicked in a cell it makes that fic starred
     func clickStar(with isStarred: Bool, index indexPath: IndexPath) {
-        if isStarred {
-            allFics[indexPath.row].starFilled = true
+        if searchedString != ""
+        {
+            if isStarred {
+                allFics[indexOfDisplay[indexPath.row]].starFilled = true
+                displayedFics[indexPath.row].starFilled = true
+            }
+            else {
+                allFics[indexOfDisplay[indexPath.row]].starFilled = false
+                displayedFics[indexPath.row].starFilled = false
+            }
         }
         else {
-            allFics[indexPath.row].starFilled = false
+            if isStarred {
+                allFics[indexPath.row].starFilled = true
+            }
+            else {
+                allFics[indexPath.row].starFilled = false
+            }
         }
         saveFics()
     }
@@ -239,5 +268,29 @@ extension ViewController: TableViewCellDelegate {
     //if the title of the fic is clicked it takes the user to that page in archive of our own
     func goToAo3(index indexPath: IndexPath) {
         UIApplication.shared.open(URL(string: allFics[indexPath.row].link)!)
+    }
+}
+
+//extension for functions relating to the search bar
+extension ViewController: UISearchBarDelegate {
+    //function that runs when the search button is clicked
+    //sets the displayed fics to any with the what was typed in the search bar in its summary section
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchedString = searchBar.text!.lowercased()
+        displayedFics = []
+        var index = 0
+        if searchedString != "" {
+            for fic in allFics {
+                if(fic.summary.lowercased().contains(searchedString)) {
+                    displayedFics.append(fic)
+                    indexOfDisplay.append(index)
+                }
+                index += 1
+            }
+        }
+        else {
+            displayedFics = allFics
+        }
+        tableView.reloadData()
     }
 }
