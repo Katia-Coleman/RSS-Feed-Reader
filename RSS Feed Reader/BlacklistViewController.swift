@@ -73,6 +73,12 @@ class BlacklistViewController: UIViewController {
         }
     }
     
+    //When the information button is clicked on a pop-up will show up to descibe how the blacklist works
+    @IBAction func informationPopUp(_ sender: Any) {
+        let alert = UIAlertController(title: "Blacklist Info", message: "Blacklisting an item removes all fics with that blacklisted item in their description. Just type the item into the provided textbox.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
 }
 
 //enables table view

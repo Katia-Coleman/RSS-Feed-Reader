@@ -85,7 +85,8 @@ class ViewController: UIViewController {
 
     //gets the saved fics from the property list
     func getSavedFics(_ item: String) {
-        allFics = []
+        allFics.removeAll()
+        encodedFics.removeAll()
         //initializes the plist manager
         SwiftyPlistManager.shared.start(plistNames: ["SavedFics"], logging: false)
         //gets the information from the plist
@@ -135,17 +136,24 @@ class ViewController: UIViewController {
         }
         removeBlacklistedItems()
         allFics.sort(by: {$0.dateUpdated.compare($1.dateUpdated) == .orderedDescending})
-            saveFics()
+        saveFics()
         displayedFics = allFics
     }
     
    //the action taken upon pressing the delete button
     //deletes all of the fics on the page
     @IBAction func deleteAllFics(_ sender: Any) {
-        allFics.removeAll()
-        displayedFics = allFics
-        tableView.reloadData()
-        SwiftyPlistManager.shared.addNewOrSave([], forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in}
+        let alert = UIAlertController(title: "Delete Alert", message: "Do you want to delete all saved fics?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Delete", style: .default, handler: { action in
+            if action.style == .default {
+                self.allFics.removeAll()
+                self.displayedFics = self.allFics
+                self.tableView.reloadData()
+                SwiftyPlistManager.shared.addNewOrSave([], forKey: "HomeFics", toPlistWithName: "SavedFics") {(err) in}
+            }
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     
     //sets up the parser for the feed and returns the array of the fics on that feed
@@ -269,6 +277,20 @@ extension ViewController: TableViewCellDelegate {
     func goToAo3(index indexPath: IndexPath) {
         UIApplication.shared.open(URL(string: allFics[indexPath.row].link)!)
     }
+    
+    //Trashes a single fic from the list
+    func trashFic(index indexPath: IndexPath) {
+        if searchedString != "" {
+            allFics.remove(at: indexOfDisplay[indexPath.row])
+            displayedFics.remove(at: indexPath.row)
+        }
+        else {
+            allFics.remove(at: indexPath.row)
+            displayedFics.remove(at: indexPath.row)
+        }
+        tableView.reloadData()
+        saveFics()
+    }
 }
 
 //extension for functions relating to the search bar
@@ -277,7 +299,7 @@ extension ViewController: UISearchBarDelegate {
     //sets the displayed fics to any with the what was typed in the search bar in its summary section
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchedString = searchBar.text!.lowercased()
-        displayedFics = []
+        displayedFics.removeAll()
         var index = 0
         if searchedString != "" {
             for fic in allFics {

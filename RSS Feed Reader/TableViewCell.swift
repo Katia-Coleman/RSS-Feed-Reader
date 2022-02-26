@@ -10,6 +10,7 @@ import UIKit
 protocol TableViewCellDelegate: AnyObject {
     func clickStar(with isStarred: Bool, index indexPath: IndexPath)
     func goToAo3(index indexPath: IndexPath)
+    func trashFic(index indexPath: IndexPath)
 }
 
 protocol FollowingTableViewCellDelegate: AnyObject {
@@ -48,6 +49,11 @@ class TableViewCell: UITableViewCell {
             starButton.setImage(UIImage(named: "StarFilled"), for: .normal)
         }
         delegate?.clickStar(with: isStarred, index: indexPath!)
+    }
+    
+    //Trashes a single fic from the list
+    @IBAction func trashFic(_ sender: Any) {
+        delegate?.trashFic(index: indexPath!)
     }
     
     //sets the information in the cell

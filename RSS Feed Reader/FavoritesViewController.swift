@@ -116,4 +116,12 @@ extension FavoritesViewController: TableViewCellDelegate {
     func goToAo3(index indexPath: IndexPath) {
         UIApplication.shared.open(URL(string: favoritedFics[indexPath.row].link)!)
     }
+    
+    //Trashes a single fic from the list
+    func trashFic(index indexPath: IndexPath) {
+        allFics.remove(at: indexOfFic[indexPath.row])
+        favoritedFics.remove(at: indexPath.row)
+        tableView.reloadData()
+        saveFics()
+    }
 }
