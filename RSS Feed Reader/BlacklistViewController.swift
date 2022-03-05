@@ -99,6 +99,9 @@ extension BlacklistViewController: UITableViewDataSource, UITableViewDelegate {
 }
 
 extension BlacklistViewController: FollowingTableViewCellDelegate {
+    func selectFeed(index indexPath: IndexPath) {
+    }
+    
     func trashFeed(index indexPath: IndexPath) {
         blacklistedItems.remove(at: indexPath.row)
         tableView.reloadData()

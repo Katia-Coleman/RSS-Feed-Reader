@@ -14,6 +14,7 @@ struct fic: Codable  {
     var summary: String
     var link: String
     var author: String
+    var feedName: String
     var dateUpdated: Date
     
     
@@ -100,7 +101,7 @@ class feedParser: NSObject, XMLParserDelegate {
             inSection = false
         }
         if elementName == "entry" {
-            let addedFic = fic(title: currentTitle, id: currentId, starFilled: false, summary: currentSummary, link: currentLink, author: "", dateUpdated: currentDateUpdated)
+            let addedFic = fic(title: currentTitle, id: currentId, starFilled: false, summary: currentSummary, link: currentLink, author: "", feedName: channelTitle, dateUpdated: currentDateUpdated)
             fics.append(addedFic)
             //print(currentSummary)
             currentSummary = ""

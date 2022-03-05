@@ -166,7 +166,7 @@ class ViewController: UIViewController {
             let newSummary = summaryParser()
             newSummary.setData(updatedFic.summary)
             newSummary.parse()
-            changedFics.append(fic(title: updatedFic.title, id: updatedFic.id, starFilled: updatedFic.starFilled, summary: newSummary.completeSummary, link: updatedFic.link, author: newSummary.currentAuthor, dateUpdated: updatedFic.dateUpdated))
+            changedFics.append(fic(title: updatedFic.title, id: updatedFic.id, starFilled: updatedFic.starFilled, summary: newSummary.completeSummary, link: updatedFic.link, author: newSummary.currentAuthor, feedName: newFeed.channelTitle, dateUpdated: updatedFic.dateUpdated))
         }
         return changedFics
     }

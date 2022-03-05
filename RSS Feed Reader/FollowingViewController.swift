@@ -14,6 +14,7 @@ class FollowingViewController: UIViewController {
     
     var following: [String] = []
     var feedsList: [String] = []
+    static var feedClicked: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,6 +82,10 @@ extension FollowingViewController: UITableViewDataSource, UITableViewDelegate {
 }
 
 extension FollowingViewController: FollowingTableViewCellDelegate {
+    func selectFeed(index indexPath: IndexPath) {
+        FollowingViewController.feedClicked = following[indexPath.row]
+    }
+    
     func trashFeed(index indexPath: IndexPath) {
         following.remove(at: indexPath.row)
         tableView.reloadData()

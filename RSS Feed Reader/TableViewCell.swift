@@ -15,6 +15,7 @@ protocol TableViewCellDelegate: AnyObject {
 
 protocol FollowingTableViewCellDelegate: AnyObject {
     func trashFeed(index indexPath: IndexPath)
+    func selectFeed(index indexPath: IndexPath)
 }
 
 class TableViewCell: UITableViewCell {
@@ -69,6 +70,10 @@ class TableViewCell: UITableViewCell {
     
     @IBAction func trashFeed(_ sender: Any) {
         followingDelegate?.trashFeed(index: indexPath!)
+    }
+    
+    @IBAction func selectFeed(_ sender: Any) {
+        followingDelegate?.selectFeed(index: indexPath!)
     }
     
     func setInfoFollowing(_ tag: String, _ index: IndexPath) {
